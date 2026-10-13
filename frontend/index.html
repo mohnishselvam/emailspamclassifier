@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090d18">
+    <meta name="description" content="SpamGuard — AI-powered message classification, keyword insights, prediction history, and analytics.">
+
+    <title>SpamGuard — Email Intelligence</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+
+    <header class="topbar">
+        <a href="#" class="brand" aria-label="SpamGuard home">
+            <span class="brand-icon">S</span>
+            <span>Spam<span class="brand-accent">Guard</span></span>
+        </a>
+
+        <div class="status-indicator">
+            <span class="status-dot"></span>
+            ML ENGINE READY
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section class="hero">
+            <div class="eyebrow">
+                <span class="eyebrow-line"></span>
+                INTELLIGENT MESSAGE SECURITY
+            </div>
+
+            <h1>
+                Know what's real.<br>
+                <span class="gradient-text">Spot what's not.</span>
+            </h1>
+
+            <p class="hero-description">
+                Analyze messages with machine learning, explore
+                classification insights, and track your scan history
+                in one place.
+            </p>
+        </section>
+
+        <!-- Analytics dashboard -->
+        <section class="analytics-section" aria-labelledby="analyticsTitle">
+            <div class="section-heading-row">
+                <div>
+                    <span class="section-kicker">OVERVIEW</span>
+                    <h2 id="analyticsTitle">Your security dashboard</h2>
+                </div>
+
+                <button type="button" id="refreshAnalyticsButton" class="secondary-button">
+                    Refresh data
+                </button>
+            </div>
+
+            <p id="analyticsStatus" class="subtle-text" role="status">
+                Loading analytics...
+            </p>
+
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <span class="stat-label">TOTAL SCANS</span>
+                        <span class="stat-icon purple-icon" aria-hidden="true">#</span>
+                    </div>
+                    <strong class="stat-value" id="totalScans">—</strong>
+                    <span class="stat-footnote">Messages analyzed</span>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <span class="stat-label">SPAM DETECTED</span>
+                        <span class="stat-icon red-icon" aria-hidden="true">!</span>
+                    </div>
+                    <strong class="stat-value" id="spamCount">—</strong>
+                    <span class="stat-footnote">Potentially unwanted</span>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <span class="stat-label">LEGITIMATE</span>
+                        <span class="stat-icon green-icon" aria-hidden="true">✓</span>
+                    </div>
+                    <strong class="stat-value" id="hamCount">—</strong>
+                    <span class="stat-footnote">Classified as HAM</span>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-topline">
+                        <span class="stat-label">AVG. CONFIDENCE</span>
+                        <span class="stat-icon cyan-icon" aria-hidden="true">%</span>
+                    </div>
+                    <strong class="stat-value" id="averageConfidence">—</strong>
+                    <span class="stat-footnote">Across saved predictions</span>
+                </article>
+            </div>
+        </section>
+
+        <!-- Message scanner -->
+        <section class="scanner-card" id="scanner">
+            <div class="card-heading">
+                <div>
+                    <span class="section-kicker">AI-POWERED ANALYSIS</span>
+                    <h2>Message scanner</h2>
+                    <p>Paste an email or message to analyze its content.</p>
+                </div>
+
+                <span class="scanner-badge">TF-IDF + ML</span>
+            </div>
+
+            <label for="messageInput" class="input-label">
+                MESSAGE CONTENT
+            </label>
+
+            <textarea
+                id="messageInput"
+                placeholder="Paste your email or message here...&#10;&#10;Example: Congratulations! You won a free prize. Claim it now!"
+                maxlength="10000"
+                spellcheck="true"
+                aria-describedby="charCount"
+            ></textarea>
+
+            <div class="input-footer">
+                <span id="charCount">0 / 10000 characters</span>
+                <span>Ctrl + Enter to analyze</span>
+            </div>
+
+            <div class="scanner-actions">
+                <button type="button" id="clearButton" class="clear-button">
+                    Clear message
+                </button>
+
+                <button type="button" id="scanButton" class="scan-button">
+                    <span id="scanButtonText">Analyze message</span>
+                    <span aria-hidden="true">→</span>
+                </button>
+            </div>
+
+            <p id="errorMessage" class="error-message hidden" role="alert"></p>
+        </section>
+
+        <!-- Prediction result -->
+        <section id="result" class="result-card hidden" aria-live="polite">
+            <div class="result-header">
+                <div class="result-icon" id="resultIcon" aria-hidden="true">✓</div>
+
+                <div class="result-heading">
+                    <span class="result-label">ANALYSIS RESULT</span>
+                    <h2 id="resultTitle">Analysis complete</h2>
+                    <p id="resultDescription"></p>
+                </div>
+            </div>
+
+            <div class="confidence-section">
+                <div class="confidence-heading">
+                    <span>Model confidence</span>
+                    <strong id="confidenceValue">0.00%</strong>
+                </div>
+
+                <div
+                    class="confidence-track"
+                    role="progressbar"
+                    aria-label="Model confidence"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow="0"
+                >
+                    <div id="confidenceBar" class="confidence-bar"></div>
+                </div>
+
+                <p class="confidence-note">
+                    Confidence represents the model's estimated probability
+                    for its predicted class, not a guarantee of correctness.
+                </p>
+            </div>
+
+            <div id="keywordSection" class="keyword-section hidden">
+                <div class="keyword-heading">
+                    <div>
+                        <span class="result-label">MODEL EXPLAINABILITY</span>
+                        <h3>Message keyword analysis</h3>
+                    </div>
+
+                    <span class="keyword-heading-icon" aria-hidden="true">✳</span>
+                </div>
+
+                <p class="keyword-subtitle">
+                    Explore words that influence the model's spam-versus-HAM score.
+                </p>
+
+                <div id="keywordList" class="keyword-list"></div>
+
+                <div class="keyword-legend">
+                    <span class="legend-item">
+                        <span class="legend-dot spam-dot"></span>
+                        Leans toward spam
+                    </span>
+
+                    <span class="legend-item">
+                        <span class="legend-dot ham-dot"></span>
+                        Leans toward legitimate
+                    </span>
+                </div>
+
+                <p class="keyword-note">
+                    These are approximate word-level contributions, not proof
+                    that a message is malicious or safe.
+                </p>
+            </div>
+        </section>
+
+        <!-- Prediction history -->
+        <section class="history-section">
+            <div class="section-heading-row">
+                <div>
+                    <span class="section-kicker">RECENT ACTIVITY</span>
+                    <h2>Prediction history</h2>
+                    <p class="section-description">
+                        Review messages previously analyzed by SpamGuard.
+                    </p>
+                </div>
+
+                <button type="button" id="refreshHistoryButton" class="secondary-button">
+                    Refresh history
+                </button>
+            </div>
+
+            <div id="historyStatus" class="subtle-text" role="status">
+                Loading history...
+            </div>
+
+            <div class="history-table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="historyBody">
+                        <tr>
+                            <td colspan="4" class="empty-cell">Loading history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="history-pagination">
+                <button type="button" id="previousPageButton" class="secondary-button" disabled>
+                    Previous
+                </button>
+
+                <span id="pageIndicator">Page 1</span>
+
+                <button type="button" id="nextPageButton" class="secondary-button" disabled>
+                    Next
+                </button>
+            </div>
+        </section>
+
+        <!-- Feature cards -->
+        <section class="features-section">
+            <div class="section-heading">
+                <span class="eyebrow-line"></span>
+                <span>BUILT FOR SMARTER MESSAGING</span>
+            </div>
+
+            <div class="features-grid">
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">⌁</div>
+                    <h3>Smart detection</h3>
+                    <p>
+                        Classifies messages as potential spam or legitimate
+                        using a trained machine learning model.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">ϟ</div>
+                    <h3>Fast analysis</h3>
+                    <p>
+                        Lightweight TF-IDF processing and Naive Bayes
+                        classification for rapid predictions.
+                    </p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">⌕</div>
+                    <h3>Keyword insights</h3>
+                    <p>
+                        Explore message terms and their estimated
+                        contributions toward the model's prediction.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <aside class="disclaimer">
+            <strong>Security reminder</strong>
+            <p>
+                SpamGuard is a machine learning aid, not a security guarantee.
+                Independently verify unexpected links, payment requests,
+                and requests for sensitive information.
+            </p>
+        </aside>
+    </main>
+
+    <footer class="footer">
+        <a href="#" class="footer-brand">SpamGuard</a>
+        <span>Machine Learning · Message Intelligence</span>
+        <span>Built for smarter email security.</span>
+    </footer>
+</body>
+</html>
