@@ -1,35 +1,52 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+import os
 from pathlib import Path
 import joblib
+from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
 
 from database import (
+    get_analytics,
+    get_history,
     initialize_database,
     save_prediction,
-    get_history,
-    get_analytics,
 )
 
-app = Flask(__name__)
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
+# Initialize Flask with frontend as the static directory
+app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
 CORS(app)
 
-BASE_DIR = Path(__file__).resolve().parent
-
+# Load trained models
 model = joblib.load(BASE_DIR / "spam_model.pkl")
 vectorizer = joblib.load(BASE_DIR / "tfidf_vectorizer.pkl")
 
-# Initialize the SQLite database when the application starts.
+# Initialize database
 initialize_database()
 
 
+# ---------------------------------------------------------------------------
+# Frontend Serving Routes
+# ---------------------------------------------------------------------------
 @app.route("/", methods=["GET"])
-def home():
+def index():
+    """Serve the frontend single-page application."""
+    return send_from_directory(str(FRONTEND_DIR), "index.html")
+
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    """Health check endpoint for deployment monitoring."""
     return jsonify({
-        "message": "Email Spam Classifier API is running!",
-        "status": "success"
+        "status": "healthy",
+        "message": "Email Spam Classifier API is running!"
     })
 
 
+# ---------------------------------------------------------------------------
+# API Routes
+# ---------------------------------------------------------------------------
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json(silent=True) or {}
@@ -40,17 +57,17 @@ def predict():
             "error": "Please provide a valid message."
         }), 400
 
-    # Convert message into TF-IDF features.
+    # Convert message into TF-IDF features
     features = vectorizer.transform([message])
 
-    # Predict SPAM or HAM.
+    # Predict SPAM or HAM
     prediction = int(model.predict(features)[0])
     probabilities = model.predict_proba(features)[0]
     confidence = float(probabilities[prediction]) * 100
 
     prediction_label = "SPAM" if prediction == 1 else "HAM"
 
-    # Identify words present in the trained vocabulary.
+    # Identify words present in the trained vocabulary
     terms = vectorizer.get_feature_names_out()
     nonzero_indices = features.nonzero()[1]
     keyword_scores = []
@@ -74,7 +91,6 @@ def predict():
             key=lambda item: abs(item["score"]),
             reverse=True
         )
-
     else:
         for index in nonzero_indices:
             keyword_scores.append({
@@ -87,7 +103,7 @@ def predict():
             reverse=True
         )
 
-    # Save this prediction to SQLite.
+    # Save prediction to SQLite
     try:
         record_id = save_prediction(
             message=message.strip(),
@@ -144,12 +160,10 @@ def history():
 def analytics():
     try:
         statistics = get_analytics()
-
         return jsonify({
             "status": "success",
             "analytics": statistics
         })
-
     except Exception:
         app.logger.exception("Failed to retrieve analytics")
         return jsonify({
@@ -157,9 +171,10 @@ def analytics():
         }), 500
 
 
+# ---------------------------------------------------------------------------
+# Application Entry Point
+# ---------------------------------------------------------------------------
 if __name__ == "__main__":
-    app.run(
-        debug=True,
-        host="127.0.0.1",
-        port=5000
-    )
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
