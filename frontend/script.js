@@ -1,5 +1,9 @@
+// Auto-detect base URL: Uses relative path "" when served by Flask,
+// or falls back to localhost if running index.html directly from a local file.
+const API_BASE_URL = (window.location.protocol === "file:")
+    ? "http://127.0.0.1:5000"
+    : "";
 
-const API_BASE_URL = "http://127.0.0.1:5000";
 const HISTORY_PAGE_SIZE = 10;
 
 // Scanner elements
